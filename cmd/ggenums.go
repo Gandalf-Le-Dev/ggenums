@@ -10,12 +10,12 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/Gandalf-Le-Dev/genums/templates"
+	"github.com/Gandalf-Le-Dev/ggenums/templates"
 	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "genums",
+	Use:   "ggenums",
 	Short: "Generate code for enums from a JSON file",
 	Long:  `Generate structs and code for enums from a JSON file`,
 	Run:   GenerateEnums,

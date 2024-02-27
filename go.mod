@@ -1,4 +1,4 @@
-module github.com/Gandalf-Le-Dev/genums
+module github.com/Gandalf-Le-Dev/ggenums
 
 go 1.21.4
 

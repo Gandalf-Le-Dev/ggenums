@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/Gandalf-Le-Dev/genums/cmd"
+	"github.com/Gandalf-Le-Dev/ggenums/cmd"
 )
 
 func main() {
