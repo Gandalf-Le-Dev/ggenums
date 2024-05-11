@@ -2,7 +2,7 @@
 
 ## 1. Install
 
-```bash 
+```bash
 go get -u github.com/Gandalf-Le-Dev/ggenums
 go install github.com/Gandalf-Le-Dev/ggenums
 ```
@@ -10,6 +10,9 @@ go install github.com/Gandalf-Le-Dev/ggenums
 ## 2. Usage
 
 You will need to define an enum in a json file like this:
+
+> [!CAUTION]
+> The enum file must be named `enums.json` and must be in the same directory as the command.
 
 ```json
 {
@@ -71,4 +74,3 @@ func main() {
     fmt.Println(my_package.MyEnums.Value3) // Output: 2
 }
 ```
-
