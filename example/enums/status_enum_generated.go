@@ -26,32 +26,25 @@ func (e StatusEnum) String() string {
 	return string(e)
 }
 
-func (e StatusEnum) IsValid() bool {
+func (e StatusEnum) Validate() error {
 	switch e {
-	case StatusPending:
-		return true
-	case StatusActive:
-		return true
-	case StatusCompleted:
-		return true
-	case StatusInProgress:
-		return true
-
+	case StatusPending, StatusActive, StatusCompleted, StatusInProgress:
+		return nil
 	default:
-		return false
+		return fmt.Errorf("invalid Status: %s", e)
 	}
 }
 
 func ParseStatus(s string) (StatusEnum, error) {
 	e := StatusEnum(s)
-	if !e.IsValid() {
-		return "", fmt.Errorf("invalid Status: %s", s)
+	if err := e.Validate(); err != nil {
+		return "", err
 	}
 	return e, nil
 }
 
 func (e StatusEnum) MarshalJSON() ([]byte, error) {
-	if !e.IsValid() {
+	if err := e.Validate(); err != nil {
 		return []byte("null"), nil
 	}
 	return json.Marshal(string(e))

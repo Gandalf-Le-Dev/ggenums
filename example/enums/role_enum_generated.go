@@ -24,30 +24,25 @@ func (e RoleEnum) String() string {
 	return string(e)
 }
 
-func (e RoleEnum) IsValid() bool {
+func (e RoleEnum) Validate() error {
 	switch e {
-	case RoleAdmin:
-		return true
-	case RoleUser:
-		return true
-	case RoleGuest:
-		return true
-
+	case RoleAdmin, RoleUser, RoleGuest:
+		return nil
 	default:
-		return false
+		return fmt.Errorf("invalid Role: %s", e)
 	}
 }
 
 func ParseRole(s string) (RoleEnum, error) {
 	e := RoleEnum(s)
-	if !e.IsValid() {
-		return "", fmt.Errorf("invalid Role: %s", s)
+	if err := e.Validate(); err != nil {
+		return "", err
 	}
 	return e, nil
 }
 
 func (e RoleEnum) MarshalJSON() ([]byte, error) {
-	if !e.IsValid() {
+	if err := e.Validate(); err != nil {
 		return []byte("null"), nil
 	}
 	return json.Marshal(string(e))

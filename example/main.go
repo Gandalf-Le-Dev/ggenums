@@ -16,6 +16,7 @@ type User struct {
 }
 
 func main() {
+	var err error
 	// JSON marshaling
 	user := User{
 		ID:     "123",
@@ -31,17 +32,21 @@ func main() {
 	json.Unmarshal(jsonData, &parsed)
 	fmt.Printf("Parsed: %+v\n", parsed)
 
-	// Validation
-	fmt.Printf("Is valid status? %v\n", enums.StatusInProgress.IsValid())
-
 	// Parsing from string
 	status, _ := enums.ParseStatus("in_progress")
 	fmt.Printf("Parsed status: %s\n", status)
 
+	// Validation
+	err = status.Validate()
+	if err != nil {
+		fmt.Printf("Validation error: %v\n", err)
+	} else {
+		fmt.Printf("Status '%s' is valid\n", status)
+	}
 	// Comparison
 	fmt.Printf("Is status in progress? %v\n", status == enums.StatusInProgress)
 
 	// Error handling
-	_, err := enums.ParseStatus("error_status")
+	_, err = enums.ParseStatus("error_status")
 	fmt.Printf("Invalid status error: %v\n", err)
 }

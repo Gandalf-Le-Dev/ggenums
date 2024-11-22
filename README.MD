@@ -22,6 +22,7 @@ go install github.com/Gandalf-Le-Dev/ggenums@latest
 
 > [!NOTE]
 > Make sure you have the go/bin directory in your PATH:
+>
 > ```bash
 > export PATH=$PATH:$(go env GOPATH)/bin
 > ```
@@ -29,22 +30,25 @@ go install github.com/Gandalf-Le-Dev/ggenums@latest
 ## Quick Start
 
 1. Define your enum using a comment:
-```go
-//enum:name=Status values=pending,active,in_progress,completed
-```
+
+    ```go
+    //enum:name=Status values=pending,active,in_progress,completed
+    ```
 
 2. Run the generator:
-```bash
-ggenums ./...
-```
+
+    ```bash
+    ggenums ./...
+    ```
 
 3. Use your generated enum:
-```go
-status := StatusPending
-if status.IsValid() {
-    fmt.Println(status) // Output: pending
-}
-```
+
+    ```go
+    status := StatusPending
+    if status.IsValid() {
+        fmt.Println(status) // Output: pending
+    }
+    ```
 
 ## Example
 
@@ -66,43 +70,49 @@ type User struct {
 }
 
 func main() {
-    // JSON marshaling
-    user := User{
-        ID:     "123",
-        Status: StatusPending,
-        Role:   RoleAdmin,
-    }
-    
-    jsonData, _ := json.Marshal(user)
-    fmt.Printf("JSON: %s\n", jsonData)
+	var err error
+	// JSON marshaling
+	user := User{
+		ID:     "123",
+		Status: StatusPending,
+		Role:   RoleAdmin,
+	}
 
-    // JSON unmarshaling
-    var parsed User
-    json.Unmarshal(jsonData, &parsed)
-    fmt.Printf("Parsed: %+v\n", parsed)
+	jsonData, _ := json.Marshal(user)
+	fmt.Printf("JSON: %s\n", jsonData)
 
-    // Validation
-    fmt.Printf("Is valid status? %v\n", StatusInProgress.IsValid())
-    
-    // Parsing from string
-    status, _ := ParseStatus("in_progress")
-    fmt.Printf("Parsed status: %s\n", status)
-    
-    // Comparison
-    fmt.Printf("Is status in progress? %v\n", status == StatusInProgress)
-    
-    // Error handling
-    _, err := ParseStatus("error_status")
-    fmt.Printf("Invalid status error: %v\n", err)
+	// JSON unmarshaling
+	var parsed User
+	json.Unmarshal(jsonData, &parsed)
+	fmt.Printf("Parsed: %+v\n", parsed)
+
+	// Parsing from string
+	status, _ := ParseStatus("in_progress")
+	fmt.Printf("Parsed status: %s\n", status)
+
+	// Validation
+	err = status.Validate()
+	if err != nil {
+		fmt.Printf("Validation error: %v\n", err)
+	} else {
+		fmt.Printf("Status '%s' is valid\n", status)
+	}
+	// Comparison
+	fmt.Printf("Is status in progress? %v\n", status == StatusInProgress)
+
+	// Error handling
+	_, err = ParseStatus("error_status")
+	fmt.Printf("Invalid status error: %v\n", err)
 }
 ```
 
 Output:
-```
+
+```bash
 JSON: {"id":"123","status":"pending","role":"admin"}
 Parsed: {ID:123 Status:pending Role:admin}
-Is valid status? true
 Parsed status: in_progress
+Status 'in_progress' is valid
 Is status in progress? true
 Invalid status error: invalid Status: error_status
 ```
@@ -110,6 +120,7 @@ Invalid status error: invalid Status: error_status
 ## Generated Code Features
 
 The generated code includes:
+
 - Type-safe enum constants
 - String conversion methods
 - JSON marshaling/unmarshaling
