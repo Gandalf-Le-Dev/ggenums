@@ -1,75 +1,126 @@
-# GGenums - Generate Golang enums
+# GGenums - Generate Golang Enums
 
-## 1. Install
+[![Go Report Card](https://goreportcard.com/badge/github.com/Gandalf-Le-Dev/ggenums)](https://goreportcard.com/report/github.com/Gandalf-Le-Dev/ggenums)
+[![GoDoc](https://godoc.org/github.com/Gandalf-Le-Dev/ggenums?status.svg)](https://godoc.org/github.com/Gandalf-Le-Dev/ggenums)
+
+GGenums is a code generation tool that makes working with enums in Go easier and safer. It automatically generates type-safe enums with built-in string conversion, JSON marshaling/unmarshaling, and validation.
+
+## Features
+
+- 🚀 Simple enum declaration using comments
+- 🔒 Type-safe enum values
+- 📦 JSON marshaling/unmarshaling support
+- ✅ Built-in validation
+- 🔄 String conversion methods
+- 📝 Easy to read generated code
+
+## Installation
 
 ```bash
-go install github.com/Gandalf-Le-Dev/ggenums
+go install github.com/Gandalf-Le-Dev/ggenums@latest
 ```
 
-## 2. Usage
+> [!NOTE]
+> Make sure you have the go/bin directory in your PATH:
+> ```bash
+> export PATH=$PATH:$(go env GOPATH)/bin
+> ```
 
-You will need to define an enum in a json file like this:
+## Quick Start
 
-> [!CAUTION]
-> The enum file must be named `enums.json` and must be in the same directory as the command.
+1. Define your enum using a comment:
+```go
+//enum:name=Status values=pending,active,in_progress,completed
+```
 
-```json
-{
-    "package": "my_package",
-    "enums": [
-        {
-            "name": "MyEnum",
-            "plural": "MyEnums",
-            "values": {
-                "value1": "Value1", // You must capitalize the first letter of the value in order to export it, otherwise it will be private
-                "value2": "Value2",
-                "value3": "Value3"
-            }
-        },
-        {
-            "name": "MyOtherEnum",
-            "plural": "MyOtherEnums",
-            "values": {
-                "value1": "Value1",
-                "value2": "Value2",
-                "value3": "Value3"
-            }
-        }
-    ]
+2. Run the generator:
+```bash
+ggenums ./...
+```
+
+3. Use your generated enum:
+```go
+status := StatusPending
+if status.IsValid() {
+    fmt.Println(status) // Output: pending
 }
 ```
 
-Then you can generate the enums with the following command:
-
-```bash
-ggenums
-```
-
-The command must be run in the same directory as the json file.
-
-You can also use golang generate to run the command automatically when you run go generate:
-
-```go
-//go:generate ggenums
-```
-
-You would typically put the above line in a file called `generate.go` in the same directory as the json file.
-
-## 3. Output
-
-These enums can then be used in your code like this:
+## Example
 
 ```go
 package main
 
 import (
+    "encoding/json"
     "fmt"
-    "my_package"
 )
 
+//enum:name=Status values=pending,active,in_progress,completed
+//enum:name=Role values=admin,user,guest
+
+type User struct {
+    ID     string     `json:"id"`
+    Status StatusEnum `json:"status"`
+    Role   RoleEnum   `json:"role"`
+}
+
 func main() {
-    fmt.Println(my_package.MyEnums.Value1) // Output: 0
-    fmt.Println(my_package.MyEnums.Value2.String()) // Output: "value2"
-    fmt.Println(my_package.MyEnums.Value3) // Output: 2
+    // JSON marshaling
+    user := User{
+        ID:     "123",
+        Status: StatusPending,
+        Role:   RoleAdmin,
+    }
+    
+    jsonData, _ := json.Marshal(user)
+    fmt.Printf("JSON: %s\n", jsonData)
+
+    // JSON unmarshaling
+    var parsed User
+    json.Unmarshal(jsonData, &parsed)
+    fmt.Printf("Parsed: %+v\n", parsed)
+
+    // Validation
+    fmt.Printf("Is valid status? %v\n", StatusInProgress.IsValid())
+    
+    // Parsing from string
+    status, _ := ParseStatus("in_progress")
+    fmt.Printf("Parsed status: %s\n", status)
+    
+    // Comparison
+    fmt.Printf("Is status in progress? %v\n", status == StatusInProgress)
+    
+    // Error handling
+    _, err := ParseStatus("error_status")
+    fmt.Printf("Invalid status error: %v\n", err)
 }
 ```
+
+Output:
+```
+JSON: {"id":"123","status":"pending","role":"admin"}
+Parsed: {ID:123 Status:pending Role:admin}
+Is valid status? true
+Parsed status: in_progress
+Is status in progress? true
+Invalid status error: invalid Status: error_status
+```
+
+## Generated Code Features
+
+The generated code includes:
+- Type-safe enum constants
+- String conversion methods
+- JSON marshaling/unmarshaling
+- Validation methods
+- Parsing functions
+- Slice of all enum values
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

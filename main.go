@@ -11,7 +11,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/Gandalf-Le-Dev/ggenums/ggenums"
+	"github.com/Gandalf-Le-Dev/ggenums/generator"
 	"github.com/Gandalf-Le-Dev/ggenums/templates"
 )
 
@@ -20,7 +20,7 @@ func main() {
 	flag.StringVar(&dir, "dir", ".", "directory to scan for enum definitions")
 	flag.Parse()
 
-	g := ggenums.NewGenerator(dir)
+	g := generator.NewGenerator(dir)
 	if err := g.Parse(); err != nil {
 		log.Fatal(err)
 	}
@@ -30,22 +30,22 @@ func main() {
 	}
 }
 
-func generate(g *ggenums.Generator) error {
+func generate(g *generator.Generator) error {
 	tmpl, err := template.New("enum").Parse(templates.EnumTemplate)
 	if err != nil {
 		return err
 	}
 
-	for typeName, values := range g.Enums {
+	for _, enumDef := range g.Enums {
 		var buf bytes.Buffer
 		if err := tmpl.Execute(&buf, struct {
 			Package string
 			Type    string
-			Values  []string
+			Values  []generator.EnumValue
 		}{
 			Package: g.PackageName(),
-			Type:    typeName,
-			Values:  values,
+			Type:    enumDef.Name,
+			Values:  enumDef.Values,
 		}); err != nil {
 			return err
 		}
@@ -55,7 +55,7 @@ func generate(g *ggenums.Generator) error {
 			return err
 		}
 
-		filename := filepath.Join(g.PackageDir(), fmt.Sprintf("%s_generated.go", strings.ToLower(typeName)))
+		filename := filepath.Join(g.PackageDir(), fmt.Sprintf("%s_enum_generated.go", strings.ToLower(enumDef.Name)))
 		if err := os.WriteFile(filename, formatted, 0644); err != nil {
 			return err
 		}

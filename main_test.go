@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Gandalf-Le-Dev/ggenums/ggenums"
+	"github.com/Gandalf-Le-Dev/ggenums/generator"
 )
 
 func TestGenerate(t *testing.T) {
@@ -16,9 +16,8 @@ func TestGenerate(t *testing.T) {
 	// Create a test enum definition
 	enumDef := `package test
 
-type Status struct {
-    enum ` + "`values:\"pending,active,completed\"`" + `
-}
+//go:generate ggenums
+//enum:name=Status values=pending,active,completed,in_progress
 `
 	err := os.WriteFile(filepath.Join(tmpDir, "status.go"), []byte(enumDef), 0644)
 	if err != nil {
@@ -26,7 +25,7 @@ type Status struct {
 	}
 
 	// Run the generator
-	g := ggenums.NewGenerator(tmpDir)
+	g := generator.NewGenerator(tmpDir)
 	if err := g.Parse(); err != nil {
 		t.Fatalf("Failed to parse: %v", err)
 	}
@@ -36,7 +35,7 @@ type Status struct {
 	}
 
 	// Check if the generated file exists
-	generatedFile := filepath.Join(tmpDir, "status_generated.go")
+	generatedFile := filepath.Join(tmpDir, "status_enum_generated.go")
 	content, err := os.ReadFile(generatedFile)
 	if err != nil {
 		t.Fatalf("Failed to read generated file: %v", err)
@@ -46,11 +45,12 @@ type Status struct {
 	generatedContent := string(content)
 	checks := []string{
 		"package test",
-		"type Status string",
+		"type StatusEnum string",
 		"StatusPending",
 		"StatusActive",
 		"StatusCompleted",
-		"func (e Status) IsValid() bool",
+		"StatusInProgress",
+		"func (e StatusEnum) IsValid() bool",
 	}
 
 	for _, check := range checks {
