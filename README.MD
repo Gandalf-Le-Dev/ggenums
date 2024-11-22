@@ -1,9 +1,8 @@
-# GGenums - Generate Golang Enums
+# GGenums - Generate Golang enums
 
 ## 1. Install
 
 ```bash
-go get -u github.com/Gandalf-Le-Dev/ggenums
 go install github.com/Gandalf-Le-Dev/ggenums
 ```
 
