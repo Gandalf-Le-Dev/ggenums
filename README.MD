@@ -43,12 +43,7 @@ go install github.com/Gandalf-Le-Dev/ggenums@latest
 
 3. Use your generated enum:
 
-    ```go
-    status := StatusPending
-    if status.IsValid() {
-        fmt.Println(status) // Output: pending
-    }
-    ```
+    See the example below or [here](./example)
 
 ## Example
 
