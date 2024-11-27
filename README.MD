@@ -3,7 +3,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/Gandalf-Le-Dev/ggenums)](https://goreportcard.com/report/github.com/Gandalf-Le-Dev/ggenums)
 [![GoDoc](https://godoc.org/github.com/Gandalf-Le-Dev/ggenums?status.svg)](https://godoc.org/github.com/Gandalf-Le-Dev/ggenums)
 
-GGenums is a code generation tool that makes working with enums in Go easier and safer. It automatically generates type-safe enums with built-in string conversion, JSON marshaling/unmarshaling, and validation.
+GGenums is a code generation tool that ease use of enums in Go. It automatically generates type-safe enums with built-in string conversion, JSON marshaling/unmarshaling, and validation.
 
 ## Features
 
