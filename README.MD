@@ -17,15 +17,8 @@ GGenums is a code generation tool that ease use of enums in Go. It automatically
 ## Installation
 
 ```bash
-go install github.com/Gandalf-Le-Dev/ggenums@latest
+go get -tool github.com/Gandalf-Le-Dev/ggenums@latest
 ```
-
-> [!NOTE]
-> Make sure you have the go/bin directory in your PATH:
->
-> ```bash
-> export PATH=$PATH:$(go env GOPATH)/bin
-> ```
 
 ## Quick Start
 
@@ -37,13 +30,13 @@ go install github.com/Gandalf-Le-Dev/ggenums@latest
 
 2. Run the generator:
 
-    ```bash
-    ggenums ./...
+    ```go
+	//go:generate go tool ggenums
     ```
 
 3. Use your generated enum:
 
-    See the example below or [here](./example)
+    See the example below
 
 ## Example
 
@@ -55,6 +48,7 @@ import (
     "fmt"
 )
 
+//go:generate go tool ggenums
 //enum:name=Status values=pending,active,in_progress,completed
 //enum:name=Role values=admin,user,guest
 
