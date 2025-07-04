@@ -31,7 +31,9 @@ func main() {
 }
 
 func generate(g *generator.Generator) error {
-	tmpl, err := template.New("enum").Parse(templates.EnumTemplate)
+	tmpl, err := template.New("enum").Funcs(template.FuncMap{
+		"ToLower": strings.ToLower,
+	}).Parse(templates.ConstEnumTemplate)
 	if err != nil {
 		return err
 	}

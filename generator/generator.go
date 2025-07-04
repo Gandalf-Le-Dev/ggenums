@@ -12,14 +12,13 @@ import (
 )
 
 type EnumValue struct {
-    ConstantName string // The PascalCase name used for the constant (e.g., "InProgress")
-    StringValue  string // The original string value (e.g., "in_progress")
+	ConstantName string // The PascalCase name used for the constant (e.g., "InProgress")
+	StringValue  string // The original string value (e.g., "in_progress")
 }
 
 type EnumDef struct {
-    Name   string
-    Values []EnumValue
-    Type   string
+	Name   string
+	Values []EnumValue
 }
 
 // Generator handles the enum code generation
@@ -55,7 +54,10 @@ func (g *Generator) Parse() error {
 	for pkgName, pkg := range pkgs {
 		g.pkgName = pkgName
 		for _, file := range pkg.Files {
-			g.parseFile(file)
+			err := g.parseFile(file)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -80,48 +82,48 @@ func (g *Generator) parseFile(file *ast.File) error {
 
 // transformToPascalCase converts a snake_case string to PascalCase
 func transformToPascalCase(input string) string {
-    words := strings.Split(input, "_")
-    for i, word := range words {
-        words[i] = cases.Title(language.English, cases.Compact).String(word)
-    }
-    return strings.Join(words, "")
+	words := strings.Split(input, "_")
+	for i, word := range words {
+		words[i] = cases.Title(language.English, cases.Compact).String(word)
+	}
+	return strings.Join(words, "")
 }
 
 func parseEnumComment(comment string) (EnumDef, error) {
-    // Remove //enum: prefix
-    content := strings.TrimPrefix(comment, "//enum:")
+	// Remove //enum: prefix
+	content := strings.TrimPrefix(comment, "//enum:")
 
-    // Parse name and values
-    parts := strings.Split(content, " ")
-    var name, valuesStr string
+	// Parse name and values
+	parts := strings.Split(content, " ")
+	var name, valuesStr string
 
-    for _, part := range parts {
-        if strings.HasPrefix(part, "name=") {
-            name = strings.TrimPrefix(part, "name=")
-        } else if strings.HasPrefix(part, "values=") {
-            valuesStr = strings.TrimPrefix(part, "values=")
-        }
-    }
+	for _, part := range parts {
+		if after, ok := strings.CutPrefix(part, "name="); ok {
+			name = after
+		} else if after, ok := strings.CutPrefix(part, "values="); ok {
+			valuesStr = after
+		}
+	}
 
-    if name == "" {
-        return EnumDef{}, fmt.Errorf("enum name not specified")
-    }
-    if valuesStr == "" {
-        return EnumDef{}, fmt.Errorf("enum values not specified")
-    }
+	if name == "" {
+		return EnumDef{}, fmt.Errorf("enum name not specified")
+	}
+	if valuesStr == "" {
+		return EnumDef{}, fmt.Errorf("enum values not specified")
+	}
 
-    // Split values and create enumValue structs
-    valuesList := strings.Split(valuesStr, ",")
-    values := make([]EnumValue, len(valuesList))
-    for i, value := range valuesList {
-        values[i] = EnumValue{
-            ConstantName: transformToPascalCase(value),
-            StringValue:  value, // Keep the original string value
-        }
-    }
+	// Split values and create enumValue structs
+	valuesList := strings.Split(valuesStr, ",")
+	values := make([]EnumValue, len(valuesList))
+	for i, value := range valuesList {
+		values[i] = EnumValue{
+			ConstantName: transformToPascalCase(value),
+			StringValue:  value, // Keep the original string value
+		}
+	}
 
-    return EnumDef{
-        Name:   name,
-        Values: values,
-    }, nil
+	return EnumDef{
+		Name:   name,
+		Values: values,
+	}, nil
 }
