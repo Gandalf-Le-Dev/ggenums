@@ -10,7 +10,7 @@ GGenums is a code generation tool that ease use of enums in Go. It automatically
 - 🚀 Simple enum declaration using comments
 - 🔒 Type-safe enum values
 - 📦 JSON marshaling/unmarshaling support
-- ✅ Built-in validation
+- ✅ Built-in validation with IsValid()
 - 🔄 String conversion methods
 - 📝 Easy to read generated code
 
@@ -53,9 +53,9 @@ import (
 //enum:name=Role values=admin,user,guest
 
 type User struct {
-    ID     string     `json:"id"`
-    Status StatusEnum `json:"status"`
-    Role   RoleEnum   `json:"role"`
+    ID     string `json:"id"`
+    Status Status `json:"status"`
+    Role   Role   `json:"role"`
 }
 
 func main() {
@@ -80,11 +80,10 @@ func main() {
 	fmt.Printf("Parsed status: %s\n", status)
 
 	// Validation
-	err = status.Validate()
-	if err != nil {
-		fmt.Printf("Validation error: %v\n", err)
-	} else {
+	if status.IsValid() {
 		fmt.Printf("Status '%s' is valid\n", status)
+	} else {
+		fmt.Printf("Status '%s' is invalid\n", status)
 	}
 	// Comparison
 	fmt.Printf("Is status in progress? %v\n", status == StatusInProgress)
@@ -110,12 +109,13 @@ Invalid status error: invalid Status: error_status
 
 The generated code includes:
 
-- Type-safe enum constants
+- Type-safe enum values
 - String conversion methods
 - JSON marshaling/unmarshaling
-- Validation methods
+- IsValid() validation method
 - Parsing functions
-- Slice of all enum values
+- All[EnumName]s() function to get all values
+- Lookup maps for efficient conversion
 
 ## Contributing
 
