@@ -8,6 +8,10 @@
 *.dll
 *.so
 *.dylib
+ggenums
+
+# Exclude examples
+example
 
 # Test binary, built with `go test -c`
 *.test
