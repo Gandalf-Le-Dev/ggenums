@@ -8,14 +8,6 @@ import (
     "fmt"
 )
 
-type {{.Type}} int
-
-const (
-    {{range $i, $v := .Values -}}
-    {{$.Type}}{{$v.ConstantName}} {{if eq $i 0}}{{$.Type}} = iota{{end}}
-    {{end}}
-)
-
 var all{{.Type}}s = []{{.Type}}{
     {{range .Values -}}
     {{$.Type}}{{.ConstantName}},

@@ -17,10 +17,21 @@ import (
 
 func main() {
 	var dir string
+	var types string
 	flag.StringVar(&dir, "dir", ".", "directory to scan for enum definitions")
+	flag.StringVar(&types, "type", "", "comma-separated list of type names to generate enums for")
 	flag.Parse()
 
-	g := generator.NewGenerator(dir)
+	if types == "" {
+		log.Fatal("must specify -type flag with comma-separated type names")
+	}
+
+	typeNames := strings.Split(types, ",")
+	for i, name := range typeNames {
+		typeNames[i] = strings.TrimSpace(name)
+	}
+
+	g := generator.NewGenerator(dir, typeNames)
 	if err := g.Parse(); err != nil {
 		log.Fatal(err)
 	}

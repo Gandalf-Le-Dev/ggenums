@@ -6,9 +6,6 @@ import (
 	"go/parser"
 	"go/token"
 	"strings"
-
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 )
 
 type EnumValue struct {
@@ -23,17 +20,19 @@ type EnumDef struct {
 
 // Generator handles the enum code generation
 type Generator struct {
-	Enums   []EnumDef
-	pkgName string
-	pkgDir  string
-	fset    *token.FileSet
+	Enums     []EnumDef
+	pkgName   string
+	pkgDir    string
+	fset      *token.FileSet
+	typeNames []string
 }
 
-func NewGenerator(pkgPath string) *Generator {
+func NewGenerator(pkgPath string, typeNames []string) *Generator {
 	return &Generator{
-		Enums:  []EnumDef{},
-		fset:   token.NewFileSet(),
-		pkgDir: pkgPath,
+		Enums:     []EnumDef{},
+		fset:      token.NewFileSet(),
+		pkgDir:    pkgPath,
+		typeNames: typeNames,
 	}
 }
 
@@ -65,65 +64,106 @@ func (g *Generator) Parse() error {
 }
 
 func (g *Generator) parseFile(file *ast.File) error {
-	// Look for //enum: comments in the file
-	for _, commentGroup := range file.Comments {
-		for _, comment := range commentGroup.List {
-			if strings.HasPrefix(comment.Text, "//enum:") {
-				def, err := parseEnumComment(comment.Text)
-				if err != nil {
-					return err
+	// Find type declarations for our target types
+	typeDecls := make(map[string]*ast.TypeSpec)
+	for _, decl := range file.Decls {
+		if genDecl, ok := decl.(*ast.GenDecl); ok && genDecl.Tok == token.TYPE {
+			for _, spec := range genDecl.Specs {
+				if typeSpec, ok := spec.(*ast.TypeSpec); ok {
+					for _, typeName := range g.typeNames {
+						if typeSpec.Name.Name == typeName {
+							typeDecls[typeName] = typeSpec
+						}
+					}
 				}
-				g.Enums = append(g.Enums, def)
 			}
 		}
 	}
+
+	// Find const declarations that follow the pattern
+	for _, decl := range file.Decls {
+		if genDecl, ok := decl.(*ast.GenDecl); ok && genDecl.Tok == token.CONST {
+			for typeName, typeSpec := range typeDecls {
+				enumDef, err := g.parseConstBlock(genDecl, typeName, typeSpec)
+				if err != nil {
+					return err
+				}
+				if enumDef != nil {
+					g.Enums = append(g.Enums, *enumDef)
+				}
+			}
+		}
+	}
+
 	return nil
 }
 
-// transformToPascalCase converts a snake_case string to PascalCase
-func transformToPascalCase(input string) string {
-	words := strings.Split(input, "_")
-	for i, word := range words {
-		words[i] = cases.Title(language.English, cases.Compact).String(word)
-	}
-	return strings.Join(words, "")
-}
+func (g *Generator) parseConstBlock(genDecl *ast.GenDecl, typeName string, typeSpec *ast.TypeSpec) (*EnumDef, error) {
+	var values []EnumValue
 
-func parseEnumComment(comment string) (EnumDef, error) {
-	// Remove //enum: prefix
-	content := strings.TrimPrefix(comment, "//enum:")
-
-	// Parse name and values
-	parts := strings.Split(content, " ")
-	var name, valuesStr string
-
-	for _, part := range parts {
-		if after, ok := strings.CutPrefix(part, "name="); ok {
-			name = after
-		} else if after, ok := strings.CutPrefix(part, "values="); ok {
-			valuesStr = after
+	for _, spec := range genDecl.Specs {
+		if valueSpec, ok := spec.(*ast.ValueSpec); ok {
+			// Check if this const belongs to our type
+			if valueSpec.Type != nil {
+				if ident, ok := valueSpec.Type.(*ast.Ident); ok && ident.Name == typeName {
+					// This const is explicitly typed with our enum type
+					for _, name := range valueSpec.Names {
+						constName := name.Name
+						if strings.HasPrefix(constName, typeName) {
+							// Extract the suffix after the type name
+							suffix := strings.TrimPrefix(constName, typeName)
+							if suffix != "" {
+								stringValue := camelToSnake(suffix)
+								values = append(values, EnumValue{
+									ConstantName: suffix,
+									StringValue:  stringValue,
+								})
+							}
+						}
+					}
+				}
+			} else {
+				// Check if this is an iota-style const that might belong to our type
+				for _, name := range valueSpec.Names {
+					constName := name.Name
+					if strings.HasPrefix(constName, typeName) {
+						// Extract the suffix after the type name
+						suffix := strings.TrimPrefix(constName, typeName)
+						if suffix != "" {
+							stringValue := camelToSnake(suffix)
+							values = append(values, EnumValue{
+								ConstantName: suffix,
+								StringValue:  stringValue,
+							})
+						}
+					}
+				}
+			}
 		}
 	}
 
-	if name == "" {
-		return EnumDef{}, fmt.Errorf("enum name not specified")
-	}
-	if valuesStr == "" {
-		return EnumDef{}, fmt.Errorf("enum values not specified")
+	if len(values) == 0 {
+		return nil, nil
 	}
 
-	// Split values and create enumValue structs
-	valuesList := strings.Split(valuesStr, ",")
-	values := make([]EnumValue, len(valuesList))
-	for i, value := range valuesList {
-		values[i] = EnumValue{
-			ConstantName: transformToPascalCase(value),
-			StringValue:  value, // Keep the original string value
-		}
-	}
-
-	return EnumDef{
-		Name:   name,
+	return &EnumDef{
+		Name:   typeName,
 		Values: values,
 	}, nil
+}
+
+// camelToSnake converts CamelCase to snake_case
+func camelToSnake(s string) string {
+	var result []rune
+	for i, r := range s {
+		if i > 0 && r >= 'A' && r <= 'Z' {
+			result = append(result, '_')
+		}
+		if r >= 'A' && r <= 'Z' {
+			result = append(result, r-'A'+'a')
+		} else {
+			result = append(result, r)
+		}
+	}
+	return string(result)
 }
